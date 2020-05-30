@@ -27,7 +27,20 @@ class Login extends Component {
         formLayOut: [
             { id: '456', name: '', phone: '' },
             { id: '789', name: '', phone: '' }
-        ]
+        ],
+        approvas: [{
+            id: 777,
+            contacts: [
+                { id: '456', name: '789', phone: '15681173138' },
+                { id: '789', name: '123456', phone: '7777' }
+            ]
+        }, {
+            id: 888,
+            contacts: [
+                { id: '456', name: 'aaa', phone: '15730652013' },
+                { id: '789', name: '12fff3456', phone: '879798' }
+            ]
+        }]  //待审批列表
     }
 
     componentDidMount() {
@@ -43,7 +56,28 @@ class Login extends Component {
                     <div className={styles.pdfWrapper}>
                     
                     </div>
-                    <div className={styles.approvas}></div>
+                    <div className={styles.approvas}>
+                        <div className={styles.approvasTitle}>待审批列表</div>
+                        <div className={styles.approvasContent}>
+                            {
+                                this.state.approvas.map((item, index) => {
+                                    return (
+                                        <div key={item.id} className={styles.approvasItemWrapper}>
+                                            <div className={styles.approvasItemTitle}>待审批组{index+1}</div>
+                                            {
+                                                item.contacts.map((key, value) => {
+                                                    return <div className={styles.approvasItemContent} key={key.phone}>
+                                                        <span className={styles.approvasName}>姓名：{key.name}</span>
+                                                        <span className={styles.approvasPhone}>手机：{key.phone}</span>
+                                                    </div>
+                                                })
+                                            }
+                                        </div>
+                                    )
+                                })
+                            }
+                        </div>
+                    </div>
                 </div>
                 <div className={styles.footer}>
                     <Button onClick={this.showModel} className={styles.btn} size="large" type="primary">发起审批</Button>
@@ -80,7 +114,7 @@ class Login extends Component {
             </div>
         )
     }
-
+    
     canNext = e => {
         setTimeout(() => {
             const disabled = !(this.state.formLayOut.every(item => {
