@@ -1,11 +1,12 @@
-import React, { Component } from 'react'
-import { connect } from 'dva'
+import React, {Component} from 'react'
+import {connect} from 'dva'
 import styles from './index.less'
-import { Button,  message, Timeline } from 'antd';
+import {Button, message, Timeline, Spin} from 'antd';
 import PDF from 'react-pdf-js';
 import axios from 'axios'
+import {ip} from '../../utils/ip.js'
 import router from 'umi/router';
-import { ip } from '../../utils/ip.js'
+
 class JudeApprova extends Component {
 
     state = {
@@ -17,31 +18,31 @@ class JudeApprova extends Component {
     async componentDidMount() {
         const phone = this.props.location.query.phone
         //获取审批组列表
-        const { id } = this.props.match.params
+        const {id} = this.props.match.params
         const res = await axios.get(ip + '/approval-process', {
             params: {
                 processInstanceId: id
             }
         })
-        const { data: { code, processInstance } } = res
-        if(!/0000$/.test(code)) {
+        const {data: {code, processInstance}} = res
+        if (!/0000$/.test(code)) {
             message.error('获取信息失败')
             return
         }
-        const { approvalFileWsid, approvalTasks } = processInstance
+        const {approvalFileWsid, approvalTasks} = processInstance
         const fileRes = await axios.get(ip + '/approval-process/download-file', {
             params: {
                 fileWsid: approvalFileWsid
             }
         })
-        const { data } = fileRes
+        const {data} = fileRes
 
         const statusRes = await axios.post(ip + '/approval-process/handle-status', {
             phone,
             processInstanceId: id
         })
 
-        const { data: { status } } = statusRes
+        const {data: {status}} = statusRes
 
         this.setState({
             approvalTasks,
@@ -51,7 +52,6 @@ class JudeApprova extends Component {
     }
 
 
-
     render() {
         return (
             <div className={styles.page}>
@@ -59,9 +59,11 @@ class JudeApprova extends Component {
                     <div className={styles.pdfWrapper}>
                         {
                             this.state.file ?
-                            <iframe src={this.state.file} width="100%" height="100%" />
-                            :
-                            null
+                                <iframe src={this.state.file} width="100%" height="100%"/>
+                                :
+                                <div className={styles.spin}>
+                                    <Spin></Spin>
+                                </div>
                         }
                     </div>
                     <div className={styles.approvas}>
@@ -71,31 +73,35 @@ class JudeApprova extends Component {
                                 {
                                     this.state.approvalTasks.map((item, index) => {
                                         return (
-                                            <Timeline.Item color={ item.result === 'PASSED' ? 'green' : item.result === 'REFUSE' ? 'red' : 'blue'} key={item.taskId} className={styles.approvasItemWrapper}>
+                                            <Timeline.Item
+                                                color={item.result === 'PASSED' ? 'green' : item.result === 'REFUSE' || item.result === 'TASK_FINISHED' ? 'red' : 'blue'}
+                                                key={item.taskId} className={styles.approvasItemWrapper}>
                                                 <div className={styles.approvasItemTitle}>审批组{index + 1}</div>
-                                                    <Timeline>
-                                                        {
-                                                            item.candidates.map((key, value) => {
-                                                                return <Timeline.Item key={key.name + value + key.phone} color={ item.approver &&  item.approver.name === key.name ? 'green' : 'blue'}>
-                                                                    <p>{key.name}</p>
-                                                                </Timeline.Item>
-                                                            })
-                                                        }
-                                                        {
-                                                            item.endDateTime ?
+                                                <Timeline>
+                                                    {
+                                                        item.candidates.map((key, value) => {
+                                                            return <Timeline.Item key={key.name + value + key.phone}
+                                                                                  color={item.approver && item.approver.name === key.name ? 'green' : 'gray'}>
+                                                                <p>{key.name}</p>
+                                                            </Timeline.Item>
+                                                        })
+                                                    }
+                                                    {
+                                                        item.endDateTime ?
                                                             <Timeline.Item color='green'>
-                                                                <p>{this.timestampToTime(new Date(item.endDateTime))}</p>
+                                                                <p>{item.approver.name + " 处理 " + this.timestampToTime(new Date(item.endDateTime))}</p>
                                                             </Timeline.Item>
                                                             :
                                                             null
-                                                        }
-                                                        {
-                                                            <Timeline.Item color={ item.result === 'PASSED' ? 'green' : item.result === 'REFUSE' ? 'red' : 'blue'}>
-                                                                <p>审批状态: {this.getStatus(item.result)}</p>
-                                                            </Timeline.Item>
-                                                            
-                                                        }
-                                                    </Timeline>
+                                                    }
+                                                    {
+                                                        <Timeline.Item
+                                                            color={item.result === 'PASSED' ? 'green' : item.result === 'REFUSE' || item.result === 'TASK_FINISHED' ? 'red' : 'blue'}>
+                                                            <p>审批状态: {this.getStatus(item.result)}</p>
+                                                        </Timeline.Item>
+
+                                                    }
+                                                </Timeline>
                                             </Timeline.Item>
                                         )
                                     })
@@ -106,41 +112,45 @@ class JudeApprova extends Component {
                 </div>
                 {
                     this.getProcess(this.state.status) ?
-                    <div className={styles.footer}>
-                        <Button onClick={() => this.approva(true)} className={styles.btn} size="large" type="primary">通过</Button>
-
-                        <Button onClick={() => this.approva(false)} className={styles.btn} size="large" type="primary">拒绝</Button>
-                    </div>
-                    :
-                    <div className={styles.footer}>
-                        <Button onClick={() => this.goBack(true)} className={styles.btn} size="large" type="primary">返回</Button>
-                    </div>
+                        <div className={styles.footer}>
+                            <Button onClick={() => this.approva(true)} className={styles.btn} size="large"
+                                    type="primary">通过</Button>
+                            <Button onClick={() => this.approva(false)} className={styles.btn} size="large"
+                                    type="primary">拒绝</Button>
+                            <Button onClick={() => this.goBack(true)} className={styles.btn} size="large"
+                                    type="primary">返回</Button>
+                        </div>
+                        :
+                        <div className={styles.footer}>
+                            <Button onClick={() => this.goBack(true)} className={styles.btn} size="large"
+                                    type="primary">返回</Button>
+                        </div>
                 }
             </div>
         )
     }
 
     timestampToTime = now => {
-        var year=now.getFullYear();  //取得4位数的年份
-        var month=now.getMonth()+1;  //取得日期中的月份，其中0表示1月，11表示12月
-        var date=now.getDate();      //返回日期月份中的天数（1到31）
-        var hour=now.getHours();     //返回日期中的小时数（0到23）
-        var minute=now.getMinutes(); //返回日期中的分钟数（0到59）
-        var second=now.getSeconds(); //返回日期中的秒数（0到59）
-        return year+"-"+month+"-"+date+" "+hour+":"+minute+":"+second;
+        var year = now.getFullYear();  //取得4位数的年份
+        var month = now.getMonth() + 1;  //取得日期中的月份，其中0表示1月，11表示12月
+        var date = now.getDate();      //返回日期月份中的天数（1到31）
+        var hour = now.getHours();     //返回日期中的小时数（0到23）
+        var minute = now.getMinutes(); //返回日期中的分钟数（0到59）
+        var second = now.getSeconds(); //返回日期中的秒数（0到59）
+        return year + "-" + month + "-" + date + " " + hour + ":" + minute + ":" + second;
     }
 
     getStatus = status => {
         /**
-         *  UNKNOWN(-1, "未知类型"), 
-            TASK_FINISHED(0,"任务结束"),
-            PASSED(1, "通过"),
-            REFUSE(2, "拒绝"),
-            WAITING(3,"等待处理"),
-            WAITING_OTHER_HANDLE(4,"等待他人处理")
+         *  UNKNOWN(-1, "未知类型"),
+         TASK_FINISHED(0,"任务结束"),
+         PASSED(1, "通过"),
+         REFUSE(2, "拒绝"),
+         WAITING(3,"等待处理"),
+         WAITING_OTHER_HANDLE(4,"等待他人处理")
          */
 
-        switch(status) {
+        switch (status) {
             case 'UNKNOWN':
                 return '未知'
             case 'TASK_FINISHED':
@@ -159,12 +169,12 @@ class JudeApprova extends Component {
 
     getProcess = status => {
         /**
-         * UNKNOWN(-1, "未知类型"), 
-            APPROVAL_ING(0, "审批中"), 
-            APPROVAL_PASSED(1, "审批通过"),
-            APPROVAL_REFUSE(2, "审批被拒绝")
+         * UNKNOWN(-1, "未知类型"),
+         APPROVAL_ING(0, "审批中"),
+         APPROVAL_PASSED(1, "审批通过"),
+         APPROVAL_REFUSE(2, "审批被拒绝")
          */
-        switch(status) {
+        switch (status) {
             case 'WAITING':
                 return true
             default:
@@ -174,15 +184,15 @@ class JudeApprova extends Component {
 
     approva = async status => {
         const phone = this.props.location.query.phone
-        const { id } = this.props.match.params
+        const {id} = this.props.match.params
         const res = await axios.post(ip + '/approval-process/approval', {
             "processInstanceId": id,
             "phone": phone,
             "passed": status,
             "reason": "145456"
         })
-        const { data: { code } } = res
-        if(/0000$/.test(code)) {
+        const {data: {code}} = res
+        if (/0000$/.test(code)) {
             message.success('操作成功')
             location.reload()
         } else {

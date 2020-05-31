@@ -67,7 +67,7 @@ class List extends Component {
         return (
             <div className={styles.page}>
                 <div className={styles.searchWrapper}>
-                    <Input onChange={this.changeSearchPhone} className={styles.input} placeholder="输入需要查询的手机号" />
+                    <Input onChange={this.changeSearchPhone} className={styles.input} value={this.state.searchPhone}  placeholder="输入需要查询的手机号" />
                     <Button onClick={this.search} className={styles.btn} type="primary">搜索</Button>
                     <Button onClick={this.gogogo} className={styles.btn} type="primary">发起审批</Button>
                 </div>

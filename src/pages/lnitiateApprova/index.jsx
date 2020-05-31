@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import styles from './index.less'
-import { Button, Input, Modal, Upload, message, Timeline } from 'antd';
+import { Button, Input, Modal, Upload, message, Timeline,Spin } from 'antd';
 import {
     PhoneOutlined,
     TeamOutlined,
@@ -8,10 +8,12 @@ import {
     UserAddOutlined,
     InboxOutlined
 } from '@ant-design/icons';
+import PDF from 'react-pdf-js'
 import rourte from 'dva'
 const { Dragger } = Upload;
+import { UploadOutlined } from '@ant-design/icons';
 import axios from 'axios'
-import { ip } from '../../utils/ip.js'
+import { ip,notifyUrl } from '../../utils/ip.js'
 import router from 'umi/router';
 class Login extends Component {
 
@@ -31,6 +33,7 @@ class Login extends Component {
                 message.error('大小不超过10MB')
                 return false
             }
+            this.setState({isUploading: true, file: undefined})
             return true
         },
         customRequest: async info => {
@@ -39,12 +42,13 @@ class Login extends Component {
             fd.append('file', file)
             const res = await axios.post( ip + '/approval-process/upload-file', fd)
             const { data: { code, base64, fileWsid } } = res
-            
+
             if(/0000$/.test(code)) {
                 message.success('上传成功')
                 this.setState({
                     file: 'data:application/pdf;base64,' + base64,
-                    fileWsid
+                    fileWsid,
+                    isUploading:false
                 })
             } else {
                 message.error('上传失败')
@@ -56,10 +60,10 @@ class Login extends Component {
         visible: false,
         modalLayOut: {
             cancelText: '取消',
-            title: '发起审批',
+            title: '添加审批组',
             centered: true,
             confirmLoading: false,
-            okText: '发起',
+            okText: '添加',
             maskClosable: false,
             okButtonProps: {
                 disabled: true
@@ -69,7 +73,8 @@ class Login extends Component {
             { id: Math.random() * 1000, name: '', phone: '' }
         ],
         approvas: [],  //待审批列表
-        file: ''
+        file: '',
+        isUploading: false
     }
 
     get canGo() {
@@ -84,9 +89,18 @@ class Login extends Component {
                     <div className={styles.pdfWrapper}>
                         {
                             this.state.file ?
-                            <iframe src={this.state.file} width="100%" height="100%" />
-                            :
-                            null
+                                <iframe src={this.state.file} width="100%" height="100%"/>
+                                :
+                                <Dragger {...this.uploadProps}>
+                                    {
+                                        this.state.isUploading ?
+                                            <Spin></Spin> :
+                                            <p className="ant-upload-drag-icon">
+                                                <InboxOutlined/>
+                                                <p className="ant-upload-text">点击上传PDF文档</p>
+                                            </p>
+                                    }
+                                </Dragger>
                         }
                     </div>
                     <div className={styles.approvas}>
@@ -117,19 +131,21 @@ class Login extends Component {
                                 }
                             </Timeline>
                         </div>
-                        <div className={styles.uploadPDFWrapper}>
-                            <Dragger {...this.uploadProps}>
-                                <p className="ant-upload-drag-icon">
-                                <InboxOutlined />
-                                </p>
-                                <p className="ant-upload-text">点击上传PDF文档</p>
-                            </Dragger>
-                        </div>
+
                     </div>
                 </div>
                 <div className={styles.footer}>
+                    {
+                        this.state.file || this.state.isUploading ?
+                            <Upload {...this.uploadProps} >
+                                <Button>
+                                    <UploadOutlined/>重新选择文件
+                                </Button>
+                            </Upload>
+                            :
+                            null
+                    }
                     <Button onClick={this.showModel} className={styles.btn} size="large" type="primary">添加审批人</Button>
-
                     <Button onClick={this.go} disabled={this.canGo} className={styles.btn} size="large" type="primary">发起审批</Button>
                     <Button onClick={this.goBack}   className={styles.btn} size="large" type="primary">返回</Button>
                 </div>
@@ -214,7 +230,7 @@ class Login extends Component {
     handleOk = e => {
         this.canNext()
         const formLayOut = [...this.state.formLayOut]
-        const approvas = [...this.state.approvas] 
+        const approvas = [...this.state.approvas]
         approvas.push({
             contacts: formLayOut
         })
@@ -243,7 +259,7 @@ class Login extends Component {
     //发起审批
     go = async e => {
         const res = await axios.post(ip + '/approval-process', {
-            notifyUrl: 'http://ienai.xin:8084/b7b16b9d-11c3-439d-9b21-f70743cf0225',
+            notifyUrl: notifyUrl,
             customTag: '123',
             approvalFileWsid: this.state.fileWsid,
             approvers: this.state.approvas
