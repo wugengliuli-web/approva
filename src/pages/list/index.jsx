@@ -55,6 +55,9 @@ class List extends Component {
 
     componentDidMount() {
         //获取审批组列表
+        if(this.state.searchPhone!==undefined || this.state.searchPhone.trim().length>0){
+            this.search()
+        }
 
     }
 
