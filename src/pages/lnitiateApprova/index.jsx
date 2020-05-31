@@ -220,7 +220,6 @@ class Login extends Component {
         this.setState({
             approvas,
             formLayOut: [
-                { id: Math.random() * 1000, name: '', phone: '' },
                 { id: Math.random() * 1000, name: '', phone: '' }
             ],
             visible: false
