@@ -111,7 +111,9 @@ class JudeApprova extends Component {
                         <Button onClick={() => this.approva(false)} className={styles.btn} size="large" type="primary">拒绝</Button>
                     </div>
                     :
-                    null
+                    <div className={styles.footer}>
+                        <Button onClick={() => this.goBack(true)} className={styles.btn} size="large" type="primary">返回</Button>
+                    </div>
                 }
             </div>
         )
@@ -162,7 +164,7 @@ class JudeApprova extends Component {
             APPROVAL_REFUSE(2, "审批被拒绝")
          */
         switch(status) {
-            case 'APPROVAL_ING':
+            case 'WAITING':
                 return true
             default:
                 return false
@@ -181,10 +183,14 @@ class JudeApprova extends Component {
         const { data: { code } } = res
         if(/0000$/.test(code)) {
             message.success('操作成功')
-            location.reload() 
+            location.reload()
         } else {
             message.error('操作失败')
         }
+    }
+
+    goBack = e => {
+        router.goBack()
     }
     
 }

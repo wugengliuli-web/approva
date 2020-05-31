@@ -103,7 +103,7 @@ class List extends Component {
                 PDFname: item.approvalFileName,
                 key: item.approvalFileWsid + index,
                 status: item.status,
-                look: item.approvalFileWsid
+                look: item.approvalProcessInstanceId
             }
         })
         if (!/0000$/.test(code)) {
