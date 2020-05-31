@@ -6,7 +6,6 @@ import PDF from 'react-pdf-js';
 import axios from 'axios'
 import router from 'umi/router';
 import { ip } from '../../utils/ip.js'
-import router from 'umi/router';
 class JudeApprova extends Component {
 
     state = {
