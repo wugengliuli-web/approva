@@ -4,7 +4,7 @@ import styles from './index.less'
 import { Button, Input, Modal, Upload, message } from 'antd';
 import PDF from 'react-pdf-js';
 import axios from 'axios'
-class Login extends Component {
+class JudeApprova extends Component {
 
     state = {
         approvas: [],  //待审批列表
@@ -66,4 +66,4 @@ class Login extends Component {
 }
 
 
-export default Login
+export default JudeApprova

@@ -1,18 +1,21 @@
 import React, { Component } from 'react'
 import { connect } from 'dva'
 import styles from './index.less'
-import { Button, Input, Modal, Upload, message } from 'antd';
+import { Button, Input, message } from 'antd';
 import PDF from 'react-pdf-js';
+import { SearchOutlined } from '@ant-design/icons';
 import axios from 'axios'
-class Login extends Component {
+import { ip } from '../../utils/ip.js'
+class List extends Component {
 
     state = {
+        searchPhone: '',
         list: [],  //待审批列表
-        file: 'file:///C:/Users/DELL/Desktop/西南科技大学+21届+web前端(暑期实习)_马羽.pdf'
     }
 
     componentDidMount() {
         //获取审批组列表
+
     }
 
 
@@ -20,10 +23,22 @@ class Login extends Component {
     render() {
         return (
             <div className={styles.page}>
+                <div className={styles.searchWrapper}>
+                    <Input onChange={this.changeSearchPhone} className={styles.input} placeholder="输入需要查询的手机号" />
+                    <Button onClick={this.search} className={styles.btn} type="primary">搜索</Button>
+                </div>
                 {
                     this.state.list.map((item, index) => {
                         return (
-                            <div key={index}></div>
+                            <div key={index}>
+                                {
+                                    item.approvalTasks.map((value, key) => {
+                                        return (
+                                            <div></div>
+                                        )
+                                    })
+                                }
+                            </div>
                         )
                     })
                 }
@@ -31,7 +46,36 @@ class Login extends Component {
         )
     }
 
+    changeSearchPhone = e => {
+        this.setState({
+            searchPhone: e.target.value
+        })
+    }
+
+    search = async e => {
+        if(this.state.searchPhone === '') {
+            this.setState({
+                list: []
+            })
+            return
+        }
+
+        const res = await axios.get(ip + '/approval-processes', {
+            params: {
+                phone: this.state.searchPhone
+            }
+        })
+        const { data: { code, approvalProcessInstances } } = res
+        if(!/0000$/.test(code)) {
+            message.error('查询失败')
+            return
+        }
+        this.setState({
+            list: approvalProcessInstances
+        })
+    }
+
 }
 
 
-export default Login
+export default List

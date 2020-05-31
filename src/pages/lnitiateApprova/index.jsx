@@ -9,25 +9,46 @@ import {
     UserAddOutlined,
     InboxOutlined
 } from '@ant-design/icons';
-import PDF from 'react-pdf-js';
+import rourte from 'dva'
 const { Dragger } = Upload;
 import axios from 'axios'
-@connect(({ test }) => ({ test }))
+import { ip } from '../../utils/ip.js'
 class Login extends Component {
+
+    maxSize = 1024 * 1024 * 10
+
     uploadProps = {
         name: 'file',
         multiple:  false,
         showUploadList: false,
-        beforeUpload(info) {
-            const { type } = info
+        beforeUpload: info => {
+            const { type, size } = info
             if(!/application\/pdf/.test(type)) {
                 message.error('格式不正确')
-                return Promise.resolve(info)
+                return false
             }
-            return Promise.reject(info)
+            if(size > this.maxSize) {
+                message.error('大小不超过10MB')
+                return false
+            }
+            return true
         },
-        onChange: info => {
-            console.log(info)
+        customRequest: async info => {
+            const { file } = info
+            const fd = new FormData()
+            fd.append('file', file)
+            const res = await axios.post( ip + '/approval-process/upload-file', fd)
+            const { data: { code, base64, fileWsid } } = res
+            
+            if(/0000$/.test(code)) {
+                message.success('上传成功')
+                this.setState({
+                    file: 'data:application/pdf;base64,' + base64,
+                    fileWsid
+                })
+            } else {
+                message.error('上传失败')
+            }
         }
     };
 
@@ -49,14 +70,17 @@ class Login extends Component {
             { id: Math.random() * 1000, name: '', phone: '' }
         ],
         approvas: [],  //待审批列表
-        file: 'file:///C:/Users/DELL/Desktop/西南科技大学+21届+web前端(暑期实习)_马羽.pdf'
+        file: ''
     }
 
     componentDidMount() {
 
     }
 
-
+    get canGo() {
+        if(this.state.approvas.length === 0 || !this.state.file) return true
+        return false
+    }
 
     render() {
         return (
@@ -65,7 +89,7 @@ class Login extends Component {
                     <div className={styles.pdfWrapper}>
                         {
                             this.state.file ?
-                            <embed src={this.file} type="application/pdf" width="100%" height="100%"></embed>
+                            <iframe src={this.state.file} width="100%" height="100%" />
                             :
                             null
                         }
@@ -106,7 +130,7 @@ class Login extends Component {
                 <div className={styles.footer}>
                     <Button onClick={this.showModel} className={styles.btn} size="large" type="primary">添加审批人</Button>
 
-                    <Button  className={styles.btn} size="large" type="primary">发起审批</Button>
+                    <Button onClick={this.go} disabled={this.canGo} className={styles.btn} size="large" type="primary">发起审批</Button>
                 </div>
 
                 <Modal
@@ -187,6 +211,7 @@ class Login extends Component {
 
     //添加审批人
     handleOk = e => {
+        this.canNext()
         const formLayOut = [...this.state.formLayOut]
         const approvas = [...this.state.approvas] 
         approvas.push({
@@ -214,6 +239,28 @@ class Login extends Component {
             visible: true
         })
     }
+
+    //发起审批
+    go = async e => {
+        const res = await axios.post(ip + '/approval-process', {
+            notifyUrl: 'http://ienai.xin:8084/b7b16b9d-11c3-439d-9b21-f70743cf0225',
+            customTag: '123',
+            approvalFileWsid: this.state.fileWsid,
+            approvers: this.state.approvas
+        })
+        const { data: { code } } = res
+        if(/0000$/.test(code)) {
+            message.success('发起成功')
+            setTimeout(() => {
+                rourte.push({
+                    pathname: '/list'
+                })
+            }, 3000)
+        } else {
+            message.error('发起失败')
+        }
+    }
+    
 }
 
 

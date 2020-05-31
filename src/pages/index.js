@@ -1,7 +1,7 @@
-import LnitiateApprova from './lnitiateApprova';
+import List from './list';
 
 export default function() {
   return (
-    <LnitiateApprova />
+    <List />
   );
 }
