@@ -5,6 +5,7 @@ import { Button,  message, Timeline } from 'antd';
 import PDF from 'react-pdf-js';
 import axios from 'axios'
 import { ip } from '../../utils/ip.js'
+import router from 'umi/router';
 class JudeApprova extends Component {
 
     state = {

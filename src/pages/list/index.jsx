@@ -12,7 +12,7 @@ import router from 'umi/router';
 class List extends Component {
 
     state = {
-        searchPhone: '',
+        searchPhone: sessionStorage.getItem('searchPhone') || '',
         list: [],  //待审批列表
         loading: false
     }
@@ -117,6 +117,7 @@ class List extends Component {
     }
 
     goNext = approvalProcessInstanceId => {
+        sessionStorage.setItem('searchPhone', this.state.searchPhone)
         router.push({
             pathname: `/judeApprova/${approvalProcessInstanceId}`,
             query: {
