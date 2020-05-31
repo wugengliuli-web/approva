@@ -131,6 +131,7 @@ class Login extends Component {
                     <Button onClick={this.showModel} className={styles.btn} size="large" type="primary">添加审批人</Button>
 
                     <Button onClick={this.go} disabled={this.canGo} className={styles.btn} size="large" type="primary">发起审批</Button>
+                    <Button onClick={this.goBack}   className={styles.btn} size="large" type="primary">返回</Button>
                 </div>
 
                 <Modal
@@ -264,6 +265,9 @@ class Login extends Component {
         this.setState({
             approvas
         })
+    }
+    goBack =()=>{
+        router.goBack()
     }
 }
 
