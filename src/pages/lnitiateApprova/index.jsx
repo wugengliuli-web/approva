@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { connect } from 'dva'
 import styles from './index.less'
 import { Button, Input, Modal, Upload, message } from 'antd';
 import {
@@ -13,6 +12,7 @@ import rourte from 'dva'
 const { Dragger } = Upload;
 import axios from 'axios'
 import { ip } from '../../utils/ip.js'
+import router from 'umi/router';
 class Login extends Component {
 
     maxSize = 1024 * 1024 * 10
@@ -71,10 +71,6 @@ class Login extends Component {
         ],
         approvas: [],  //待审批列表
         file: ''
-    }
-
-    componentDidMount() {
-
     }
 
     get canGo() {
@@ -252,9 +248,7 @@ class Login extends Component {
         if(/0000$/.test(code)) {
             message.success('发起成功')
             setTimeout(() => {
-                rourte.push({
-                    pathname: '/list'
-                })
+                router.goBack()
             }, 3000)
         } else {
             message.error('发起失败')
