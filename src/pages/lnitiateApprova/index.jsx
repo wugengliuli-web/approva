@@ -252,7 +252,7 @@ class Login extends Component {
             message.success('发起成功')
             setTimeout(() => {
                 router.goBack()
-            }, 3000)
+            }, 2000)
         } else {
             message.error('发起失败')
         }
