@@ -66,7 +66,6 @@ class Login extends Component {
             }
         },
         formLayOut: [
-            { id: Math.random() * 1000, name: '', phone: '' },
             { id: Math.random() * 1000, name: '', phone: '' }
         ],
         approvas: [],  //待审批列表
@@ -92,13 +91,14 @@ class Login extends Component {
                     </div>
                     <div className={styles.approvas}>
                         <div>
-                            <div className={styles.approvasTitle}>待审批列表</div>
+                            <div className={styles.approvasTitle}>审批人列表</div>
                             <Timeline className={styles.approvasContent}>
                                 {
                                     this.state.approvas.map((item, index) => {
                                         return (
                                             <Timeline.Item color="blue" key={index} className={styles.approvasItemWrapper}>
-                                                <div className={styles.approvasItemTitle}>待审批组{index + 1}</div>
+                                                <div className={styles.approvasItemTitle}>审批组{index + 1} <CloseCircleOutlined onClick={e => this.delApprover(index)} className={styles.close} /> </div>
+
                                                 <Timeline>
                                                     {
                                                         item.contacts.map((key, value) => {
@@ -143,7 +143,7 @@ class Login extends Component {
                         this.state.formLayOut.map((item, index) => {
                             return (
                                 <div className={styles.formContainer} key={item.id}>
-                                    <div className={styles.formTitle}>审批人{index + 1} {index >= 2 ? <CloseCircleOutlined onClick={e => this.del(index)} className={styles.close} /> : null} </div>
+                                    <div className={styles.formTitle}>审批人{index + 1} {index >= 1 ? <CloseCircleOutlined onClick={e => this.del(index)} className={styles.close} /> : null} </div>
                                     <div className={styles.formWrapper}>
                                         <Input onChange={e => this.setFormLayOut(index, 'name', e.target.value)} className={styles.input} size="small" placeholder="请输入姓名" prefix={<TeamOutlined />} />
                                         <Input onChange={e => this.setFormLayOut(index, 'phone', e.target.value)} className={styles.input} size="small" placeholder="请输入手机号" prefix={<PhoneOutlined />} />
@@ -258,7 +258,14 @@ class Login extends Component {
             message.error('发起失败')
         }
     }
-    
+    delApprover = index =>{
+        console.log(index)
+        const approvas = [...this.state.approvas]
+        approvas.splice(index,1)
+        this.setState({
+            approvas
+        })
+    }
 }
 
 
