@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { connect } from 'dva'
 import styles from './index.less'
-import { Button,  message } from 'antd';
+import { Button,  message, Timeline } from 'antd';
 import PDF from 'react-pdf-js';
 import axios from 'axios'
 import { ip } from '../../utils/ip.js'
@@ -14,6 +14,7 @@ class JudeApprova extends Component {
     }
 
     async componentDidMount() {
+        const phone = this.props.location.query.phone
         //获取审批组列表
         const { id } = this.props.match.params
         const res = await axios.get(ip + '/approval-process', {
@@ -26,13 +27,21 @@ class JudeApprova extends Component {
             message.error('获取信息失败')
             return
         }
-        const { approvalFileWsid, approvalTasks, status } = processInstance
+        const { approvalFileWsid, approvalTasks } = processInstance
         const fileRes = await axios.get(ip + '/approval-process/download-file', {
             params: {
                 fileWsid: approvalFileWsid
             }
         })
         const { data } = fileRes
+
+        const statusRes = await axios.post(ip + '/approval-process/handle-status', {
+            phone,
+            processInstanceId: id
+        })
+
+        const { data: { status } } = statusRes
+
         this.setState({
             approvalTasks,
             file: 'data:application/pdf;base64,' + data,
@@ -57,36 +66,40 @@ class JudeApprova extends Component {
                     <div className={styles.approvas}>
                         <div>
                             <div className={styles.approvasTitle}>审批组列表</div>
-                            <div className={styles.approvasContent}>
+                            <Timeline className={styles.approvasContent}>
                                 {
                                     this.state.approvalTasks.map((item, index) => {
                                         return (
-                                            <div key={item.taskId} className={styles.approvasItemWrapper}>
+                                            <Timeline.Item color={ item.result === 'PASSED' ? 'green' : item.result === 'REFUSE' ? 'red' : 'blue'} key={item.taskId} className={styles.approvasItemWrapper}>
                                                 <div className={styles.approvasItemTitle}>审批组{index + 1}</div>
-                                                {
-                                                    item.approver ?
-                                                    <div className={styles.approvasItemContent}>
-                                                        <div>审批人</div>
-                                                        <span className={styles.approvasName}>姓名：{item.approver.name}</span>
-                                                        <span className={styles.approvasPhone}>手机：{item.approver.phone}</span>
-                                                    </div>
-                                                    :
-                                                    null
-                                                }
-                                                {
-                                                    item.candidates.map((key, value) => {
-                                                        return <div className={styles.approvasItemContent} key={key.phone + key.name}>
-                                                            <span className={styles.approvasName}>姓名：{key.name}</span>
-                                                            <span className={styles.approvasPhone}>手机：{key.phone}</span>
-                                                        </div>
-                                                    })
-                                                }
-                                                <div>审批状态: {this.getStatus(item.result)}</div>
-                                            </div>
+                                                    <Timeline>
+                                                        {
+                                                            item.candidates.map((key, value) => {
+                                                                return <Timeline.Item key={key.name + value + key.phone} color={ item.approver &&  item.approver.name === key.name ? 'green' : 'blue'}>
+                                                                    <p>{key.name}</p>
+                                                                </Timeline.Item>
+                                                            })
+                                                        }
+                                                        {
+                                                            item.endDateTime ?
+                                                            <Timeline.Item color='green'>
+                                                                <p>{this.timestampToTime(new Date(item.endDateTime))}</p>
+                                                            </Timeline.Item>
+                                                            :
+                                                            null
+                                                        }
+                                                        {
+                                                            <Timeline.Item color={ item.result === 'PASSED' ? 'green' : item.result === 'REFUSE' ? 'red' : 'blue'}>
+                                                                <p>审批状态: {this.getStatus(item.result)}</p>
+                                                            </Timeline.Item>
+                                                            
+                                                        }
+                                                    </Timeline>
+                                            </Timeline.Item>
                                         )
                                     })
                                 }
-                            </div>
+                            </Timeline>
                         </div>
                     </div>
                 </div>
@@ -102,6 +115,16 @@ class JudeApprova extends Component {
                 }
             </div>
         )
+    }
+
+    timestampToTime = now => {
+        var year=now.getFullYear();  //取得4位数的年份
+        var month=now.getMonth()+1;  //取得日期中的月份，其中0表示1月，11表示12月
+        var date=now.getDate();      //返回日期月份中的天数（1到31）
+        var hour=now.getHours();     //返回日期中的小时数（0到23）
+        var minute=now.getMinutes(); //返回日期中的分钟数（0到59）
+        var second=now.getSeconds(); //返回日期中的秒数（0到59）
+        return year+"-"+month+"-"+date+" "+hour+":"+minute+":"+second;
     }
 
     getStatus = status => {

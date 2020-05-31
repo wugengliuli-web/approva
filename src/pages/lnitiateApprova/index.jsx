@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import styles from './index.less'
-import { Button, Input, Modal, Upload, message } from 'antd';
+import { Button, Input, Modal, Upload, message, Timeline } from 'antd';
 import {
     PhoneOutlined,
     TeamOutlined,
@@ -93,25 +93,29 @@ class Login extends Component {
                     <div className={styles.approvas}>
                         <div>
                             <div className={styles.approvasTitle}>待审批列表</div>
-                            <div className={styles.approvasContent}>
+                            <Timeline className={styles.approvasContent}>
                                 {
                                     this.state.approvas.map((item, index) => {
                                         return (
-                                            <div key={index} className={styles.approvasItemWrapper}>
+                                            <Timeline.Item color="blue" key={index} className={styles.approvasItemWrapper}>
                                                 <div className={styles.approvasItemTitle}>待审批组{index + 1}</div>
-                                                {
-                                                    item.contacts.map((key, value) => {
-                                                        return <div className={styles.approvasItemContent} key={key.phone + key.name}>
-                                                            <span className={styles.approvasName}>姓名：{key.name}</span>
-                                                            <span className={styles.approvasPhone}>手机：{key.phone}</span>
-                                                        </div>
-                                                    })
-                                                }
-                                            </div>
+                                                <Timeline>
+                                                    {
+                                                        item.contacts.map((key, value) => {
+                                                            return <Timeline.Item color="blue" className={styles.approvasItemContent} key={key.phone + key.name + value}>
+                                                                <p>
+                                                                    <span className={styles.approvasName}>姓名：{key.name}</span>
+                                                                    <span className={styles.approvasPhone}>手机：{key.phone}</span>
+                                                                </p>
+                                                            </Timeline.Item>
+                                                        })
+                                                    }
+                                                </Timeline>
+                                            </Timeline.Item>
                                         )
                                     })
                                 }
-                            </div>
+                            </Timeline>
                         </div>
                         <div className={styles.uploadPDFWrapper}>
                             <Dragger {...this.uploadProps}>

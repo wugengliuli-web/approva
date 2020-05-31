@@ -41,3 +41,8 @@ table {
 	border-collapse: collapse;
 	border-spacing: 0;
 }
+
+.ant-timeline-item-content {
+	min-height: 0 !important;
+	text-align: left;
+}
